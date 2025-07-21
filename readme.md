@@ -27,7 +27,8 @@ Run these command in your terminal
 ```cd ..```
 ```npm run dev```
 
-Enter this url in your browser t
+Enter this url in your browser to use the web application
+```http://localhost:3000/```
 
 
 
