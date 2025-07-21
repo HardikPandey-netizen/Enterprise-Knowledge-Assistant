@@ -1,0 +1,184 @@
+import React, { useState, useEffect } from "react";
+import { Moon, LogOut } from "lucide-react";
+import { useAuth } from "../Contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import LogoutModal from "./LogoutModal";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import api from "../Services/api";
+
+const Sidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
+  const { user, logout, isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [editedNames, setEditedNames] = useState({});
+
+  const fetchChats = async () => {
+    const res = await api.get(`/chats/user/${user.id}`);
+    console.log(res.data.data.docs);
+    return res.data.data.docs;
+  };
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["chats"],
+    queryFn: fetchChats,
+  });
+
+  const handleConfirmLogout = () => {
+    logout();
+    setShowModal(false);
+    navigate("/chatbot");
+  };
+
+  const queryClient = useQueryClient();
+
+  const handleChatChange = async (chatId, newTitle) => {
+    try {
+      await api.patch(`/chats/update/${chatId}`, { name: newTitle });
+      queryClient.invalidateQueries(["chats"]); // refetch updated list
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
+  };
+
+  const handleNewChat = async () => {
+    try {
+      const res = await api.post(`/chats/user/${user.id}/create`, {
+        name: "New Chat",
+      });
+      const newChat = res.data.data.doc;
+      queryClient.invalidateQueries(["chats"]); // Refresh chat list
+      setSelectedChat(newChat); // Optional: auto-select the new chat
+    } catch (err) {
+      console.error("Failed to create new chat:", err);
+    }
+  };
+
+  const handleDeleteChat = async (chatId) => {
+    try {
+      await api.delete(`/chats/delete/${chatId}`);
+      queryClient.invalidateQueries(["chats"]); // Refetch chats
+      if (selectedChat && selectedChat._id === chatId) {
+        setSelectedChat(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete chat:", err);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen p-2">
+      {/* New Chat Button */}
+      <div
+        onClick={handleNewChat}
+        className="border font-medium border-black text-[0.75rem] mt-1 cursor-pointer p-2"
+      >
+        New Chat
+      </div>
+
+      {/* Scrollable Chat List */}
+      {isLoading ? (
+        <p className="text-xs">Loading chats...</p>
+      ) : isError ? (
+        <p className="text-xs text-red-500">Failed to load chats</p>
+      ) : (
+        <div className="flex-1 overflow-y-scroll pr-1 mt-5 custom-scroll">
+          <p className="font-bold font-['Istok_Web','sans-serif'] text-[0.75rem]">
+            Today
+          </p>
+          {data.map((chat, index) => (
+            <div
+              key={index}
+              className={`p-2 border font-['Istok_Web','sans-serif'] font-normal border-black text-[0.75rem] flex items-center justify-between mt-2 ${
+                selectedChat === chat ? "bg-gray-200" : ""
+              }`}
+              onClick={() => setSelectedChat(chat)}
+            >
+              <input
+                type="text"
+                className="w-full border-none outline-none bg-transparent"
+                value={editedNames[chat._id] ?? chat.name}
+                onChange={(e) => {
+                  setEditedNames({
+                    ...editedNames,
+                    [chat._id]: e.target.value,
+                  });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (
+                      editedNames[chat._id] &&
+                      editedNames[chat._id].trim() !== chat.name.trim()
+                    ) {
+                      handleChatChange(chat._id, editedNames[chat._id].trim());
+                    }
+                  }
+                }}
+                onBlur={() => {
+                  // Revert name on blur
+                  setEditedNames((prev) => {
+                    const updated = { ...prev };
+                    delete updated[chat._id];
+                    return updated;
+                  });
+                }}
+              />
+              <button
+                className="ml-2 text-red-500 font-bold"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteChat(chat._id);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Fixed Bottom Section */}
+      <div className="border-t-2 pt-3 mt-4 mb-5 flex flex-col gap-5 sticky bottom-0 bg-white z-10">
+        <div className="flex items-center gap-2 justify-center">
+          <Moon className="h-5 w-5 sm:h-6 sm:w-6" />
+          <p className="text-sm sm:text-sm font-medium font-['Inter','sans-serif'] mr-[76px]">
+            Dark Mode
+          </p>
+        </div>
+        {isLoggedIn && (
+          <>
+            <div className="flex items-center gap-2 justify-center">
+              <img
+                className="h-5 w-5 sm:h-6 sm:w-6"
+                src="assets/icons/crown.png"
+                alt="Premium"
+              />
+              <p className="text-sm sm:text-sm font-medium font-['Inter','sans-serif'] mr-[13px]">
+                Upgrade to premium
+              </p>
+            </div>
+            <div
+              className="flex items-center gap-2 justify-center cursor-pointer hover:border-gray-400"
+              onClick={() => setShowModal(true)}
+            >
+              <LogOut className="h-5 w-5 sm:h-6 sm:w-6" />
+              <p className="text-sm sm:text-sm font-medium font-['Inter','sans-serif'] mr-[105px]">
+                Logout
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Logout Modal */}
+      {showModal && (
+        <LogoutModal
+          onConfirm={handleConfirmLogout}
+          onCancel={() => setShowModal(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default Sidebar;
