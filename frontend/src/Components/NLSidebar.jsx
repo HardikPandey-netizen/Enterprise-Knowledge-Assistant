@@ -2,51 +2,41 @@ import React, { useState, useEffect } from "react";
 import { Moon, LogOut } from "lucide-react";
 import { useAuth } from "../Contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { ObjectId } from "bson";
-import LogoutModal from "./LogoutModal";
-import axios from "axios";
-import {
-  fetchChats,
-  updateChat,
-  deleteChat,
-} from "../Services/chatService";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-const Sidebar = ({ selectedChat, setSelectedChat }) => {
-  const { user, logout, isLoggedIn } = useAuth();
+const Sidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
+  const { logout, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const queryClient = useQueryClient();
 
-  const { data: chats = [], isLoading } = useQuery({
-    queryKey: ["chats", user?.id],
-    queryFn: () => fetchChats(user.id),
-    enabled: !!user?.id, // only fetch if logged in
+  // Load from localStorage
+  useEffect(() => {
+    const storedChats = localStorage.getItem("chats");
+    if (storedChats) {
+      setChats(JSON.parse(storedChats));
+    } else {
+      setChats([{ title: "Laptop Recommendations", messages: [] }]);
+    }
   });
 
-  
-
-  const updateMutation = useMutation({
-    mutationFn: ({ chatId, name }) => updateChat({ chatId, name }),
-    onSuccess: () => queryClient.invalidateQueries(["chats", user.id]),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (chatId) => deleteChat(chatId),
-    onSuccess: () => queryClient.invalidateQueries(["chats", user.id]),
-  });
+  // Save to localStorage
+  useEffect(() => {
+    localStorage.setItem("chats", JSON.stringify(chats));
+  }, [chats]);
 
   const handleNewChat = () => {
-    setSelectedChat(8241)
+    setSelectedChat({ title: "New Chat", messages: [] }); 
   };
 
-  const handleChatChange = (chatId, newname) => {
-    updateMutation.mutate({ chatId, name: newname });
+  const handleChatChange = (index, newTitle) => {
+    const updatedChats = [...chats];
+    updatedChats[index].title = newTitle;
+    setChats(updatedChats);
   };
 
-  const handleDeleteChat = (chatId) => {
-    deleteMutation.mutate(chatId);
-    if (selectedChat?.id === chatId) {
+  const handleDeleteChat = (index) => {
+    const updatedChats = chats.filter((_, chatIndex) => chatIndex !== index);
+    setChats(updatedChats);
+    if (index === selectedChat) {
       setSelectedChat(null);
     }
   };
@@ -70,25 +60,25 @@ const Sidebar = ({ selectedChat, setSelectedChat }) => {
       {/* Chat List */}
       <div className="flex-1 overflow-y-scroll pr-1 mt-5 custom-scroll">
         <p className="font-bold font-istok text-[0.75rem]">Today</p>
-        {chats.map((chat) => (
+        {chats.map((chat, index) => (
           <div
-            key={chat._id}
+            key={index}
             className={`p-2 border font-istok font-normal border-black text-[0.75rem] flex items-center justify-between mt-2 ${
-              selectedChat?._id === chat._id ? "bg-gray-200" : ""
+              selectedChat === chat ? "bg-gray-200" : ""
             }`}
-            onClick={() => setSelectedChat(chat)}
+            onClick={() => setSelectedChat(chats[index])}
           >
             <input
               type="text"
               className="w-full border-none outline-none bg-transparent"
-              value={chat.name}
-              onChange={(e) => handleChatChange(chat._id, e.target.value)}
+              value={chat.title}
+              onChange={(e) => handleChatChange(index, e.target.value)}
             />
             <button
               className="ml-2 text-red-500 font-bold"
               onClick={(e) => {
                 e.stopPropagation();
-                handleDeleteChat(chat._id);
+                handleDeleteChat(index);
               }}
             >
               Delete

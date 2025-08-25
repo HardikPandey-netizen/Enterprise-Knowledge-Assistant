@@ -1,6 +1,18 @@
+import { useState,useEffect } from "react";
 
-function Chatquery({ query, response }) {
-  
+
+function Chatquery({ query, response,isLoading }) {
+  const [dots, setDots] = useState("");
+
+  useEffect(() => {
+    if (!isLoading) return;
+
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length < 3 ? prev + "." : ""));
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   return (
     <>
@@ -12,7 +24,7 @@ function Chatquery({ query, response }) {
         </div>
         <div className="mt-7 ml-2 pl-3 px-5 py-3 border border-black inline-block">
           <div className="flex flex-col gap-2 text-left items-start">
-            <p className="mt-2">{response}</p>
+            {response ? response : `Thinking${dots}`}
           </div>
         </div>
       </div>

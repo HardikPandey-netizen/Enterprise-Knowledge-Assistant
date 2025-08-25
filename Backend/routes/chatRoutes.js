@@ -5,6 +5,8 @@ const router = express.Router();
 router.post('/user/:userId/create', chatController.createChat);
 router.patch('/update/:chatId', chatController.updateChat);
 router.delete('/delete/:chatId', chatController.deleteChat);
-router.get('/user/:userId', chatController.getUserChats); // New route
+router.get('/user/:userId', chatController.getUserChats); 
+router.patch('/:chatId/create',chatController.createQuery);
+router.get('/:chatId',chatController.getQueries);
 
-module.exports = router;
+module.exports = router;  

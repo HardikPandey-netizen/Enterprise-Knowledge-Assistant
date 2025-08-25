@@ -9,6 +9,7 @@ const querySchema = new mongoose.Schema({
     response: {
         type: String,
         required: true,
+        default: 'Error getting the Response'
     },
     chat: {
         type: mongoose.Schema.ObjectId,

@@ -2,22 +2,26 @@ const catchAsync = require("../utils/catchAsync");
 const Chat = require("../models/chatHistoryModel");
 const AppError = require("../utils/appError");
 const APIFeatures = require('./../utils/apiFeatures');
+const { findByIdAndUpdate } = require("../models/queryModel");
 
 
 exports.createChat = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
+  try{
+    const { userId } = req.params;
   const { name } = req.body;
+
+  
 
   let finalName = name;
 
   if(!finalName){
-    const count = await Chat.countDocuments({userId});
+    const count = await Chat.countDocuments({ user: userId });  
     finalName = `Chat#${count+1}`;
   }
 
   const doc = await Chat.create({
     name: finalName,
-    userId,
+    user: userId,
   });
 
   res.status(201).json({
@@ -26,6 +30,9 @@ exports.createChat = catchAsync(async (req, res, next) => {
       doc,
     },
   });
+  }catch(err){
+    console.log(err);
+  }
 });
 
 
@@ -66,26 +73,64 @@ exports.deleteChat = catchAsync(async (req, res, next) => {
 exports.getUserChats = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
 
-  
-  const filter = { user: userId };
-
-  const features = new APIFeatures(Chat.find(filter), req.query)
-    .search()
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-
-  const docs = await features.query;
-  const totalDocs = await Chat.countDocuments(filter);
+  // Find all chats for this user, newest first
+  const docs = await Chat.find({ user: userId }).sort("-createdAt");
+  const totalDocs = docs.length;
 
   res.status(200).json({
     status: "success",
-    results: docs.length,
-    total: totalDocs,
+    results: totalDocs,
     data: {
       docs,
     },
   });
 });
 
+
+
+exports.createQuery = catchAsync(async (req, res, next) => {
+  const { chatId } = req.params;
+  const { query, response } = req.body;
+
+  const chat = await Chat.findById(chatId);
+
+  if (!chat) {
+    return next(new AppError("Chat not found", 404));
+  }
+
+  const newMessage = {
+    query,
+    response,
+    createdAt: new Date()
+  };
+
+  chat.messages.push(newMessage);
+  await chat.save();
+
+  // Return only the new message
+  res.status(201).json({
+    status: "success",
+    data: {
+      message: newMessage
+    }
+  });
+});
+
+exports.getQueries = catchAsync(async (req, res, next) => {
+  const { chatId } = req.params;
+
+  const chat = await Chat.findById(chatId);
+
+  if (!chat) {
+    return next(new AppError("Chat not found", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    results: chat.messages.length,
+    data: {
+      messages: chat.messages,
+    },
+  });
+});
+ 
