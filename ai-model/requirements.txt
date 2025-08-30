@@ -10,5 +10,4 @@ uvicorn
 psycopg2-binary
 psycopg2
 psycopg_binary
-libpq
 psycopg[binary]
