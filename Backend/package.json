@@ -1,7 +1,7 @@
 {
   "name": "pustak",
   "version": "1.0.0",
-  "description": "It is a website for acessing pdf or buying or booking books",
+  "description": "It is an enterprise knowledge assistant",
   "main": "index.js",
   "scripts": {
     "start": "nodemon server.js"

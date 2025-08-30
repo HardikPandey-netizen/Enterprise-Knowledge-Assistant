@@ -1,0 +1,12 @@
+FROM node:20-alpine AS dev
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm install
+
+# Copy frontend source
+COPY . .
+
+# Start dev server on 0.0.0.0 for Docker access
+CMD ["npm", "run", "dev"]
