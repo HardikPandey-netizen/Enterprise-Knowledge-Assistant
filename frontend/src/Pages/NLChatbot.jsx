@@ -1,17 +1,19 @@
 import React, { useState } from "react";
-import Sidebar from "../Components/NLSidebar";
-import Chatquery from "../Components/Chatquery";
+import NLSidebar from "../Components/NLSidebar";
+import Chatquery from "../components/chatquery";
 import { Link, Navigate, NavLink } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContext";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 
+const api = import.meta.env.VITE_AI_URL;
+
 const sendMessage = async (question) => {
-  const res = await axios.post("http://localhost:8000/api/chat", { question });
+  const res = await axios.post(api, { question });
   return res.data.answer;
 };
 
-const Chatbot = () => {
+const NLChatbot = () => {
   const { user, isLoggedIn } = useAuth();
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -91,7 +93,7 @@ const Chatbot = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       <div className="w-60 bg-white border-r border-black p-4">
-        <Sidebar
+        <NLSidebar
           chats={chats}
           setChats={setChats}
           selectedChat={selectedChat}
@@ -173,4 +175,4 @@ const Chatbot = () => {
   );
 };
 
-export default Chatbot;
+export default NLChatbot;

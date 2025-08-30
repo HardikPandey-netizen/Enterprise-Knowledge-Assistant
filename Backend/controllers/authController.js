@@ -5,13 +5,11 @@ const jwt = require("jsonwebtoken");
 const AppError = require("./../utils/appError");
 const sendEmail = require("./../utils/email");
 const crypto = require("crypto");
-const passport = require('passport');
-const dotenv = require('dotenv');
-var GoogleStrategy = require( 'passport-google-oauth2' ).Strategy;
+const passport = require("passport");
+const dotenv = require("dotenv");
+var GoogleStrategy = require("passport-google-oauth2").Strategy;
 
-
-dotenv.config({ path: "./config.env"});
-
+dotenv.config({ path: "./config.env" });
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -22,12 +20,28 @@ const signToken = (id) => {
 exports.signup = catchAsync(async (req, res, next) => {
   const { username, email, role, password, passwordConfirm } = req.body;
 
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    if (existingUser.provider === "google") {
+      return next(
+        new AppError(
+          "This email is registered via Google. Please login with Google.",
+          400
+        )
+      );
+    }
+    return next(
+      new AppError("Email already in use. Please login instead.", 400)
+    );
+  }
+
   const newUser = await User.create({
     username,
     email,
     role,
     password,
     passwordConfirm,
+    provider: "local",
   });
 
   const token = signToken(newUser._id);
@@ -43,8 +57,18 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password, username } = req.body;
-  
-  if(!username){
+  const existingUser = await User.findOne({ email });
+
+  if (existingUser.provider === "google") {
+    return next(
+      new AppError(
+        "This email is registered via Google. Please login with Google.",
+        400
+      )
+    );
+  }
+
+  if (!username) {
     return next(new AppError("Please provide username", 400));
   }
   if (!email || !password) {
@@ -70,12 +94,11 @@ exports.login = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: {
-      user
+      user,
     },
-    token
+    token,
   });
 });
-
 
 exports.protect = catchAsync(async (req, res, next) => {
   let token = "";
@@ -128,7 +151,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   if (!user) {
     return res.status(200).json({
       status: "success",
-      message: "If a user with that email exists, a reset link has been sent."
+      message: "If a user with that email exists, a reset link has been sent.",
     });
   }
 
@@ -161,12 +184,13 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     return next(
-      new AppError("There was an error sending the email. Please try again later.", 500)
+      new AppError(
+        "There was an error sending the email. Please try again later.",
+        500
+      )
     );
   }
 });
-
-
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
   const hashedToken = crypto
@@ -196,4 +220,3 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     token,
   });
 });
-

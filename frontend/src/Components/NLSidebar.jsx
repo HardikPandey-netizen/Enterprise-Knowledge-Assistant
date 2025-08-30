@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Moon, LogOut } from "lucide-react";
 import { useAuth } from "../Contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import LogoutModal from "./LogoutModal";
 
-const Sidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
+const NLSidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
   const { logout, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
@@ -16,7 +17,7 @@ const Sidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
     } else {
       setChats([{ title: "Laptop Recommendations", messages: [] }]);
     }
-  });
+  }, []);
 
   // Save to localStorage
   useEffect(() => {
@@ -132,4 +133,4 @@ const Sidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
   );
 };
 
-export default Sidebar;
+export default NLSidebar;
