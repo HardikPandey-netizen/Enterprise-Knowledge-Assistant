@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Sidebar from "../components/sidebar";
+import Sidebar from "../Components/Sidebar";
 import Chatquery from "../components/chatquery";
 import { Link, Navigate, NavLink } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContext";
@@ -7,8 +7,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchQueries, createChat, createQuery } from "../Services/chatService";
 import axios from "axios";
 
+const api = import.meta.env.VITE_AI_URL;
+
 const sendMessage = async (question) => {
-  const res = await axios.post("http://localhost:8000/api/chat", { question });
+  const res = await axios.post(api, { question });
   return res.data.answer;
 };
 

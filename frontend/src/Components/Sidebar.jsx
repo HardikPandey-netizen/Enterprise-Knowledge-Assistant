@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Moon, LogOut } from "lucide-react";
 import { useAuth } from "../Contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ObjectId } from "bson";
 import LogoutModal from "./LogoutModal";
-import axios from "axios";
+
 import {
   fetchChats,
   updateChat,
@@ -18,7 +18,7 @@ const Sidebar = ({ selectedChat, setSelectedChat }) => {
   const [showModal, setShowModal] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: chats = [], isLoading } = useQuery({
+  const { data: chats = [] } = useQuery({
     queryKey: ["chats", user?.id],
     queryFn: () => fetchChats(user.id),
     enabled: !!user?.id, // only fetch if logged in
