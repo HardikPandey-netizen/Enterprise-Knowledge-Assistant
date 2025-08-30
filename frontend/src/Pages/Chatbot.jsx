@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Sidebar from "../Components/Sidebar";
-import Chatquery from "../components/chatquery";
+import Chatquery from "../Components/Chatquery";
 import { Link, Navigate, NavLink } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
