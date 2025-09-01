@@ -18,7 +18,7 @@ export default function Login() {
   const responseGoogle = async (authResult) => {
     try {
       console.log(authResult);
-      const response = await api.post(`/users/oauth/google`, {
+      const response = await api.post(`api/v1/users/oauth/google`, {
         access_token: authResult.access_token,
       });
 
