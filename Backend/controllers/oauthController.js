@@ -39,6 +39,7 @@ exports.googleLogin = async (req, res, next) => {
     }
 
     const token = signToken(user.id);
+    console.log("Response in oauth ", res);
 
     res.status(200).json({
       status: "success",
