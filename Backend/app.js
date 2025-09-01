@@ -15,7 +15,11 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chats", chatRouter);
 
 app.get("/", () => {
-  res.send("I am Live");
+  try {
+    res.send("I am Live");
+  } catch (err) {
+    console.log("Error in Root Route ", err);
+  }
 });
 
 app.all("*", (req, res, next) => {
