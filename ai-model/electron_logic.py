@@ -50,7 +50,7 @@ ANSWER:"""
 prompt = PromptTemplate(template=prompt_template, input_variables=['context', 'question', 'chat_history'])
 
 # LLM
-llm = ChatGroq(groq_api_key=groq_api_key, model_name="groq/llama-3.1-8b-instant")
+llm = ChatGroq(groq_api_key=groq_api_key, model_name="llama-3.1-8b-instant")
 
 # Chain
 qa = ConversationalRetrievalChain.from_llm(
