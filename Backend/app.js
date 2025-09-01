@@ -14,13 +14,22 @@ app.use(cors());
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chats", chatRouter);
 
-app.get("/", () => {
+app.get("/", (req,res,next) => {
   try {
     res.send("I am Live");
   } catch (err) {
     console.log("Error in Root Route ", err);
   }
 });
+
+app.get("/api/v1/testUsers", (req,res,next) => {
+  try {
+    res.send("I am Live again");
+  } catch (err) {
+    console.log("Error in Root Route ", err);
+  }
+});
+
 
 app.all("*", (req, res, next) => {
   next(new AppError(`cannot find ${req.originalUrl} on this server.`, 404));
