@@ -10,7 +10,7 @@ export default function LogoutModal({ onConfirm, onCancel }) {
         <p className="mb-6 text-gray-600 dark:text-gray-400">
           Are you sure you want to log out?
         </p>
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 mt-1">
           <button
             onClick={onCancel}
             className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
