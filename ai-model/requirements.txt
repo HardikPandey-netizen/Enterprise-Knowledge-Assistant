@@ -12,3 +12,4 @@ psycopg2
 psycopg_binary
 psycopg[binary]
 sqlalchemy
+lxml

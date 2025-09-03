@@ -56,8 +56,11 @@ def embed_and_save_documents():
         embedding=embeddings,
         connection=CONNECTION_STRING,
         collection_name=COLLECTION_NAME,
-        pre_delete_collection=True
+        pre_delete_collection=False,   # ❌ don’t wipe collection on every run
+        create_extension=False,        # ❌ Supabase already has pgvector
+        use_jsonb=True                 # ✅ recommended for Supabase
     )
+
     print(f"✅ Stored {len(final_documents)} chunks in PostgreSQL (collection: {COLLECTION_NAME})")
 
 if __name__ == "__main__":

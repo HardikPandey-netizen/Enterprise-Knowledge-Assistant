@@ -34,7 +34,10 @@ engine = create_engine(
 db = PGVector(
     embeddings=embeddings,
     collection_name=COLLECTION_NAME,
-    connection=engine
+    connection=engine,
+    use_jsonb=True,              # works better on Supabase
+    pre_delete_collection=False, # don’t drop collection
+    create_extension=False       # ⚡ prevent CREATE EXTENSION vector
 )
 db_retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 4})
 
