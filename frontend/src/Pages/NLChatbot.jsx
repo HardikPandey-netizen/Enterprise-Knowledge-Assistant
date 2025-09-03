@@ -53,17 +53,22 @@ const NLChatbot = () => {
 
     const newMessage = { query: messages, response: null };
 
-    if (selectedChat.title === "New Chat") {
+    if (
+      selectedChat.title === "New Chat" &&
+      selectedChat.messages.length === 0
+    ) {
+      
       const newChat = {
         id: Date.now(),
-        title: "Fresh Chat",
+        title: "New Chat", 
         messages: [newMessage],
+        createdAt: new Date(),
       };
       setChats([...chats, newChat]);
       setSelectedChat(newChat);
     } else {
       const updatedChats = chats.map((chat) =>
-        chat === selectedChat
+        chat.id === selectedChat.id
           ? { ...chat, messages: [...chat.messages, newMessage] }
           : chat
       );

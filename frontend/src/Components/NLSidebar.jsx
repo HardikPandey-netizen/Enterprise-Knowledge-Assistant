@@ -21,7 +21,13 @@ const NLSidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
     if (storedChats) {
       setChats(JSON.parse(storedChats));
     } else {
-      setChats([{ title: "Laptop Recommendations", messages: [], createdAt: new Date() }]);
+      setChats([
+        {
+          title: "Laptop Recommendations",
+          messages: [],
+          createdAt: new Date(),
+        },
+      ]);
     }
   }, []);
 
@@ -31,9 +37,7 @@ const NLSidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
   }, [chats]);
 
   const handleNewChat = () => {
-    const newChat = { title: "New Chat", messages: [], createdAt: new Date() };
-    setChats([...chats, newChat]);
-    setSelectedChat(newChat);
+    setSelectedChat({ title: "New Chat", messages: [] });
   };
 
   const handleChatRename = (index, newTitle) => {
@@ -80,11 +84,7 @@ const NLSidebar = ({ selectedChat, setSelectedChat, chats, setChats }) => {
               <div
                 key={index}
                 className={`p-2 cursor-pointer rounded-md font-istok font-normal text-[0.75rem] flex items-center justify-between mt-2 relative
-                  ${
-                    selectedChat === chat
-                      ? "bg-gray-200 dark:bg-gray-800"
-                      : ""
-                  }
+                  ${selectedChat === chat ? "bg-gray-200 dark:bg-gray-800" : ""}
                   hover:bg-gray-100 dark:hover:bg-gray-700`}
                 onClick={() => !isEditing && setSelectedChat(chat)}
               >
