@@ -10,7 +10,7 @@ exports.createOne = (Model) =>
       data: {
         tour: newdoc,
       },
-    }); //we have async writeFile because we do not want to block the event loop in the callback function
+    }); 
   });
 
 exports.getAll = (Model) =>

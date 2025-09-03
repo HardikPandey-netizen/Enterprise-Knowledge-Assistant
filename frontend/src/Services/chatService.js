@@ -1,7 +1,7 @@
 // Services/chatService.js
 import axios from "axios";
 
-const API = `${import.meta.env.VITE_API_URL}/chats`;
+const API = `${import.meta.env.VITE_API_URL}/api/v1/chats`;
 
 // Get all chats of a user
 export const fetchChats = async (userId) => {

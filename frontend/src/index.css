@@ -5,6 +5,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Istok+Web:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Istok+Web:ital,wght@0,400;0,700;1,400;1,700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+html, body {
+  height: 100%;
+  overflow: hidden; /* stop body from scrolling */
+}
+
 
 .custom-scroll::-webkit-scrollbar {
   display: none;
@@ -12,5 +19,14 @@
 .custom-scroll {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* hide scrollbar for Firefox */
+.scrollbar-hide {
+  scrollbar-width: none;
 }
 

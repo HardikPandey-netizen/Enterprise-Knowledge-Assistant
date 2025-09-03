@@ -11,3 +11,4 @@ psycopg2-binary
 psycopg2
 psycopg_binary
 psycopg[binary]
+sqlalchemy

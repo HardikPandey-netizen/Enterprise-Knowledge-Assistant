@@ -3,49 +3,61 @@ from dotenv import load_dotenv
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_postgres import PGVector 
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from langchain.prompts import PromptTemplate
 from langchain.chains import ConversationalRetrievalChain
+from sqlalchemy import create_engine
 
-# Load environment
+
 load_dotenv()
 os.environ['GOOGLE_API_KEY'] = os.getenv("GOOGLE_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY")
 
-# PGVector connection
+
 CONNECTION_STRING = os.getenv("PGVECTOR_CONNECTION")
 COLLECTION_NAME = "confluence_docs"
 
-# Chat memory
-memory = ConversationBufferWindowMemory(k=2, memory_key="chat_history", return_messages=True)
 
-# Embeddings
+memory = ConversationBufferWindowMemory(k=0, memory_key="chat_history", return_messages=True)
+
+
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
-# Load from PostgreSQL instead of FAISS
+
+engine = create_engine(
+    CONNECTION_STRING,
+    pool_pre_ping=True,
+    pool_recycle=1800,
+)
+
 db = PGVector(
     embeddings=embeddings,
     collection_name=COLLECTION_NAME,
-    connection=CONNECTION_STRING  
+    connection=engine
 )
 db_retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 4})
 
-# Prompt template
-prompt_template = """You are an Enterprise Knowledge Assistant. 
-Your role is to provide accurate, concise, and professional information based on the user's questions. 
-Use only the provided CONTEXT and CHAT HISTORY to answer the QUESTION.
+
+prompt_template = """
+You are an Enterprise Knowledge Assistant that helps users with information from company documentation.
 
 Guidelines:
-- Only use information from the CONTEXT to answer.
-- If the answer is not in the CONTEXT, respond with: 
-  "I’m not sure about this. Please consult the relevant team or documentation."
-- Keep responses brief, clear, and professional.
-- Do not generate your own questions or pose additional ones.
+- Answer only based on the CONTEXT provided or general professional knowledge.
+- Do NOT invent personal details (name, pronouns, location, email, social links, or company roles).
+- Keep answers short, clear, and professional unless a detailed explanation is required.
+- If the user greets (e.g., "hello", "hi"), respond politely with a short greeting (1–2 sentences max).
+- Use Markdown for formatting:
+  - Use bullet points or numbered lists when listing items.
+  - Use **bold** for key terms.
+  - Keep paragraphs short with line breaks.
 
 CONTEXT: {context}
 CHAT HISTORY: {chat_history}
 QUESTION: {question}
-ANSWER:"""
+ANSWER (Markdown):"""
+
+
 
 prompt = PromptTemplate(template=prompt_template, input_variables=['context', 'question', 'chat_history'])
 

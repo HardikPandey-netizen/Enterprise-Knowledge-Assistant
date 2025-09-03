@@ -77,12 +77,12 @@ exports.login = catchAsync(async (req, res, next) => {
 
   const user = await User.findOne({ email }).select("+password");
 
-  // Check if user exists
+  
   if (!user) {
     return next(new AppError("Incorrect email or password", 401));
   }
 
-  // Check if password is correct
+  
   const correct = await user.correctPassword(password, user.password);
 
   if (!correct) {
@@ -158,12 +158,11 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  // React frontend URL (adjust port as needed or use env variable)
+  
   const reactAppUrl = process.env.REACT_APP_URL || "http://localhost:5173";
   const resetURL = `${reactAppUrl}/resetPassword/${resetToken}`;
 
-  // Old backend API reset link (commented out)
-  // const resetURL = `${req.protocol}://${req.get("host")}/api/v1/users/resetPassword/${resetToken}`;
+  
 
   const message = `Forgot your password? Click the link below to reset your password:\n\n${resetURL}\n\nIf you didn’t request a password reset, please ignore this email.`;
 

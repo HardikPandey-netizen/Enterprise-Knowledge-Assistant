@@ -73,10 +73,9 @@ exports.deleteChat = catchAsync(async (req, res, next) => {
 exports.getUserChats = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
 
-  // Find all chats for this user, newest first
+  
   const docs = await Chat.find({ user: userId }).sort("-createdAt");
   const totalDocs = docs.length;
-
   res.status(200).json({
     status: "success",
     results: totalDocs,
@@ -107,7 +106,7 @@ exports.createQuery = catchAsync(async (req, res, next) => {
   chat.messages.push(newMessage);
   await chat.save();
 
-  // Return only the new message
+  
   res.status(201).json({
     status: "success",
     data: {

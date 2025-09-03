@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import NLSidebar from "../Components/NLSidebar";
 import Chatquery from "../Components/Chatquery";
-import { Link, Navigate, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../Contexts/AuthContext";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
@@ -18,21 +18,11 @@ const NLChatbot = () => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState("");
-  
-
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    setMessages(value);
-  };
-
-  const getRandomColor = (Colors = ["#2b4539", "#61dca3", "#61b3dc"]) => {
-    return Colors[Math.floor(Math.random() * Colors.length)];
-  };
+  const bottomRef = useRef(null);
 
   const chatMutation = useMutation({
     mutationFn: sendMessage,
     onSuccess: (response) => {
-      // Update last message's response
       const updatedChats = chats.map((chat) =>
         chat === selectedChat
           ? {
@@ -54,45 +44,44 @@ const NLChatbot = () => {
     },
   });
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [selectedChat?.messages]);
+
   const handleUploadClick = () => {
-    if (messages.trim() !== "" && selectedChat) {
-      // Add query instantly with a placeholder response (null)
-      const newMessage = { query: messages, response: null };
+    if (messages.trim() === "" || !selectedChat) return;
 
-      if (selectedChat.title === "New Chat") {
-        const newChat = {
-          id: Date.now(),
-          title: "Fresh Chat",
-          messages: [newMessage],
-        };
-        setChats([...chats, newChat]);
-        setSelectedChat(newChat);
-      } else {
-        const updatedChats = chats.map((chat) =>
-          chat === selectedChat
-            ? { ...chat, messages: [...chat.messages, newMessage] }
-            : chat
-        );
-        setChats(updatedChats);
-        setSelectedChat({
-          ...selectedChat,
-          messages: [...selectedChat.messages, newMessage],
-        });
-      }
+    const newMessage = { query: messages, response: null };
 
-      // Fire API call
-      chatMutation.mutate(messages);
-
-      // Clear input
-      setMessages("");
+    if (selectedChat.title === "New Chat") {
+      const newChat = {
+        id: Date.now(),
+        title: "Fresh Chat",
+        messages: [newMessage],
+      };
+      setChats([...chats, newChat]);
+      setSelectedChat(newChat);
+    } else {
+      const updatedChats = chats.map((chat) =>
+        chat === selectedChat
+          ? { ...chat, messages: [...chat.messages, newMessage] }
+          : chat
+      );
+      setChats(updatedChats);
+      setSelectedChat({
+        ...selectedChat,
+        messages: [...selectedChat.messages, newMessage],
+      });
     }
+
+    chatMutation.mutate(messages);
+    setMessages("");
   };
 
-  
-
   return (
-    <div className="flex h-screen bg-gray-100">
-      <div className="w-60 bg-white border-r border-black p-4">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-64 border-r border-gray-300 dark:border-gray-700 h-full flex-shrink-0">
         <NLSidebar
           chats={chats}
           setChats={setChats}
@@ -100,74 +89,89 @@ const NLChatbot = () => {
           setSelectedChat={setSelectedChat}
         />
       </div>
-      <div className="flex-1 flex flex-col bg-gray-50">
-        <header className="bg-white p-4 flex justify-between items-center">
-          <div className="flex flex-row gap-[980px]">
-            <h1 className="text-3xl font-medium font-['Kantumruy_Pro','sans-serif']">
-              ELECTRON
-            </h1>
-            {isLoggedIn ? (
-              <div
-                className="w-8 h-8 ml-7 rounded-full flex items-center justify-center bg-gray-200 text-white text-lg font-semibold"
-                style={{ backgroundColor: getRandomColor() }}
-              >
-                {user?.profilePicture ? (
-                  <img
-                    src={user.profilePicture}
-                    alt="Profile"
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span>{user?.username?.charAt(0)?.toUpperCase()}</span>
-                )}
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="border border-gray-300 px-3 py-1.5 font-['Inter','sans-serif'] font-semibold rounded-md hover:bg-gray-50 transition-colors"
-              >
-                Login
-              </Link>
-            )}
-          </div>
-        </header>
-        <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-          {selectedChat &&
-            selectedChat.messages.map((chat, index) => (
-              <Chatquery
-                key={index}
-                query={chat.query}
-                response={chat.response}
-                isLoading={
-                  chatMutation.isPending &&
-                  index === selectedChat.messages.length - 1
-                }
-              />
-            ))}
-        </div>
-        <footer className="p-4 border border-black mx-10 mb-4">
-          {/* Conditional rendering of the list */}
 
-          <div className="flex flex-row">
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="bg-white dark:bg-gray-800 p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 shadow-sm">
+          <h1 className="text-xl font-semibold tracking-wide">ELECTRON</h1>
+
+          {isLoggedIn ? (
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-400 text-white font-semibold">
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt="Profile"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{user?.username?.charAt(0)?.toUpperCase()}</span>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              Login
+            </Link>
+          )}
+        </header>
+
+        {/* Chat Messages */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-6">
+          {!selectedChat || selectedChat.messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
+              <h2 className="text-4xl font-bold font-sans text-gray-400 dark:text-white select-none">
+                Ask Anything
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 max-w-lg text-sm">
+                Start a conversation by typing your question below. I’ll do my
+                best to help!
+              </p>
+            </div>
+          ) : (
+            <>
+              {selectedChat.messages.map((chat, index) => (
+                <Chatquery
+                  key={index}
+                  query={chat.query}
+                  response={chat.response}
+                  isLoading={
+                    chatMutation.isPending &&
+                    index === selectedChat.messages.length - 1
+                  }
+                />
+              ))}
+              <div ref={bottomRef} />
+            </>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <footer className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="flex items-center gap-3">
             <input
               type="text"
               value={messages}
-              onChange={handleInputChange}
+              onChange={(e) => setMessages(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  e.preventDefault(); // prevent form submission or newline
+                  e.preventDefault();
                   handleUploadClick();
                 }
-              }} // Handle input changes
-              className="px-4 py-2 flex-grow rounded-md text-[#808080] focus:outline-none"
+              }}
+              placeholder="Type a message..."
+              className="flex-grow px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 focus:outline-none text-sm"
             />
-            <img
-              src="/assets/icons/Upload Circle.png"
-              alt="Chat"
-              className="w-7 h-7 self-center mr-2"
-              onClick={handleUploadClick}
-            />
+            <button onClick={handleUploadClick}>
+              <img
+                src="/assets/icons/Upload Circle.png"
+                alt="Send"
+                className="w-7 h-7 cursor-pointer"
+              />
+            </button>
           </div>
         </footer>
       </div>

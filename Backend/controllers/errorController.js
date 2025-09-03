@@ -41,7 +41,7 @@ const sendErrorDev = (err,res)=> {
       })
     }
     else{
-      // console.error('Error 💥',err);
+      
   
       res.status(500).json({
         status: 'error',

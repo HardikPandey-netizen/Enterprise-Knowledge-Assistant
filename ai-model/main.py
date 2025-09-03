@@ -5,7 +5,7 @@ from electron_logic import get_response
 
 app = FastAPI()
 
-# CORS (so frontend can connect)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Replace with frontend URL in prod
@@ -20,4 +20,6 @@ class Query(BaseModel):
 @app.post("/api/chat")
 async def chat(query: Query):
     answer = get_response(query.question)
+    if not answer or not answer.strip():
+            return {"answer": "Chat server busy"}
     return {"answer": answer}
